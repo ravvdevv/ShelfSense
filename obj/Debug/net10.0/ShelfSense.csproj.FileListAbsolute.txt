@@ -20,9 +20,6 @@ C:\Users\Acer\Desktop\COLLEGE\vsc\ShelfSense\ShelfSense\obj\Debug\net10.0\rjimsw
 C:\Users\Acer\Desktop\COLLEGE\vsc\ShelfSense\ShelfSense\obj\Debug\net10.0\rjsmrazor.dswa.cache.json
 C:\Users\Acer\Desktop\COLLEGE\vsc\ShelfSense\ShelfSense\obj\Debug\net10.0\rjsmcshtml.dswa.cache.json
 C:\Users\Acer\Desktop\COLLEGE\vsc\ShelfSense\ShelfSense\obj\Debug\net10.0\scopedcss\bundle\ShelfSense.styles.css
-C:\Users\Acer\Desktop\COLLEGE\vsc\ShelfSense\ShelfSense\obj\Debug\net10.0\compressed\qbr8r71p5c-{0}-khcjxhbu8l-khcjxhbu8l.gz
-C:\Users\Acer\Desktop\COLLEGE\vsc\ShelfSense\ShelfSense\obj\Debug\net10.0\compressed\1llb87tab5-{0}-l6iy7a122x-l6iy7a122x.gz
-C:\Users\Acer\Desktop\COLLEGE\vsc\ShelfSense\ShelfSense\obj\Debug\net10.0\compressed\k8r7d6xr3w-{0}-m1wu7eg6qn-m1wu7eg6qn.gz
 C:\Users\Acer\Desktop\COLLEGE\vsc\ShelfSense\ShelfSense\obj\Debug\net10.0\staticwebassets.build.json
 C:\Users\Acer\Desktop\COLLEGE\vsc\ShelfSense\ShelfSense\obj\Debug\net10.0\staticwebassets.build.json.cache
 C:\Users\Acer\Desktop\COLLEGE\vsc\ShelfSense\ShelfSense\obj\Debug\net10.0\staticwebassets.development.json
@@ -34,3 +31,6 @@ C:\Users\Acer\Desktop\COLLEGE\vsc\ShelfSense\ShelfSense\obj\Debug\net10.0\refint
 C:\Users\Acer\Desktop\COLLEGE\vsc\ShelfSense\ShelfSense\obj\Debug\net10.0\ShelfSense.pdb
 C:\Users\Acer\Desktop\COLLEGE\vsc\ShelfSense\ShelfSense\obj\Debug\net10.0\ShelfSense.genruntimeconfig.cache
 C:\Users\Acer\Desktop\COLLEGE\vsc\ShelfSense\ShelfSense\obj\Debug\net10.0\ref\ShelfSense.dll
+C:\Users\Acer\Desktop\COLLEGE\vsc\ShelfSense\ShelfSense\obj\Debug\net10.0\compressed\1llb87tab5-{0}-brhyfzhw2v-brhyfzhw2v.gz
+C:\Users\Acer\Desktop\COLLEGE\vsc\ShelfSense\ShelfSense\obj\Debug\net10.0\compressed\qbr8r71p5c-{0}-bx1zbvshvx-bx1zbvshvx.gz
+C:\Users\Acer\Desktop\COLLEGE\vsc\ShelfSense\ShelfSense\obj\Debug\net10.0\compressed\i3tq4osuwy-{0}-kz0a28z7du-kz0a28z7du.gz

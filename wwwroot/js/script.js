@@ -1,16 +1,12 @@
-// ============================================================
-//  ShelfSense — Unified Script (API Connected)
-// ============================================================
-
 const API = "/api/inventory";
 let inventory = [];
 
-// Category singular → plural (matches card labels in HTML)
+//Category 
 const CATEGORY_LABEL = { Book: "Books", Magazine: "Magazines", Stationery: "Stationery" };
 
 const LOW_STOCK_THRESHOLD = 5;
 
-// 2. DOM REFERENCES
+// UI REFERENCES
 const tableBody    = document.querySelector(".table");
 const dateLine     = document.getElementById("dateLine");
 const timeLine     = document.getElementById("timeLine");
@@ -19,13 +15,13 @@ const modalTitle   = document.getElementById("modalTitle");
 const filterSelect = document.querySelector(".filter");
 const searchInput  = document.querySelector(".search input");
 
-// 3. SIDEBAR TOGGLE
+//SIDEBAR TOGGLES
 function toggleSidebar() {
   const app = document.getElementById("app");
   if (app) app.classList.toggle("collapsed");
 }
 
-// 4. LIVE CLOCK
+//  LIVE CLOCK
 function updateClock() {
   const now = new Date();
   if (dateLine) {
@@ -41,7 +37,7 @@ function updateClock() {
   }
 }
 
-// 5. LOAD INVENTORY FROM API
+// LOAD INVENTORY FROM API
 async function loadInventory() {
   try {
     const res = await fetch(API);
@@ -52,7 +48,7 @@ async function loadInventory() {
   }
 }
 
-// 6. RENDER TABLE
+// TABLE
 function renderTable() {
   if (!tableBody) return;
 
@@ -104,7 +100,7 @@ function renderTable() {
   updateCategoryCounts();
 }
 
-// 7. UPDATE CATEGORY COUNTS
+//CATEGORY COUNT UPDATESS
 function updateCategoryCounts() {
   const counts = { Books: 0, Magazines: 0, Stationery: 0 };
   inventory.forEach(item => {
@@ -121,9 +117,8 @@ function updateCategoryCounts() {
   });
 }
 
-// ============================================================
+
 //  MODAL UTILITIES
-// ============================================================
 function getFreshConfirmBtn() {
   const old   = document.getElementById("modalConfirmBtn");
   const fresh = old.cloneNode(true);
@@ -140,9 +135,7 @@ function closeModal() {
   modalOverlay.style.display = "none";
 }
 
-// ============================================================
 //  SPECIFIC FIELDS
-// ============================================================
 function toggleSpecificFields() {
   const type      = document.getElementById("pType")?.value;
   const container = document.getElementById("specificFields");
@@ -158,7 +151,7 @@ function toggleSpecificFields() {
         </div>
         <div class="input-group">
           <label>ISBN</label>
-          <input type="text" id="pISBN" placeholder="978-3-16">
+          <input type="text" id="pISBN" placeholder="978-0-306-40615-7">
         </div>
       </div>
       <div class="input-group">
@@ -215,9 +208,8 @@ function readSpecificFields(type) {
   return {};
 }
 
-// ============================================================
+
 //  ADD PRODUCT
-// ============================================================
 function openAddModal() {
   modalTitle.textContent = "Add Product";
   setModalBody(`
@@ -270,9 +262,7 @@ function openAddModal() {
   };
 }
 
-// ============================================================
 //  UPDATE PRODUCT
-// ============================================================
 function openUpdateModal() {
   modalTitle.textContent = "Update Product";
   setModalBody(`
@@ -314,9 +304,7 @@ function openUpdateModal() {
   };
 }
 
-// ============================================================
 //  DELETE PRODUCT
-// ============================================================
 function openDeleteModal() {
   modalTitle.textContent = "Delete Product";
   setModalBody(`
@@ -341,9 +329,7 @@ function openDeleteModal() {
   };
 }
 
-// ============================================================
-//  CHECK ALERTS
-// ============================================================
+//CHECK ALERTS
 async function openAlertsModal() {
   modalTitle.textContent = "Stock Alerts";
 
@@ -374,9 +360,7 @@ async function openAlertsModal() {
   btn.onclick = closeModal;
 }
 
-// ============================================================
 //  VIEW PRODUCT
-// ============================================================
 function openViewModal(item) {
   modalTitle.textContent = "Product Details";
 
@@ -418,9 +402,7 @@ function openViewModal(item) {
   btn.onclick = closeModal;
 }
 
-// ============================================================
-//  EVENT LISTENERS
-// ============================================================
+// EVENT LISTENERS
 document.querySelectorAll(".nav-item").forEach(item => {
   const label = item.querySelector(".nav-label")?.textContent.trim();
   if (!label) return;
@@ -441,9 +423,7 @@ document.querySelector(".exit")?.addEventListener("click", () => {
   if (confirm("Exit ShelfSense?")) window.close();
 });
 
-// ============================================================
-//  INIT
-// ============================================================
+//  TIME
 setInterval(updateClock, 1000);
 updateClock();
 loadInventory();

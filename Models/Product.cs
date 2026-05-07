@@ -8,16 +8,16 @@ public class Product
     public int Quantity { get; set; }
     public string Category { get; set; } = "";
 
-    // Book fields
+    // Book 
     public string? Author { get; set; }
     public string? Isbn { get; set; }
     public string? Genre { get; set; }
 
-    // Magazine fields
+    // Magazine 
     public int? Issue { get; set; }
     public string? PubDate { get; set; }
 
-    // Stationery fields
+    // Stationery 
     public string? Brand { get; set; }
     public string? Size { get; set; }
 }

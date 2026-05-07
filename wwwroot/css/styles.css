@@ -35,14 +35,14 @@ body {
 }
 
 .app.collapsed {
-  grid-template-columns: 80px 1fr; /* Narrow strip for icons only */
+  grid-template-columns: 80px 1fr; 
 }
 
 /* 2. SIDEBAR STYLING */
 .sidebar {
   background: linear-gradient(180deg, #4a3427 0%, #3b2a1e 100%);
   color: #f9e8d4;
-  padding: 15px 18px; /* Reduced top padding for topmost icon placement */
+  padding: 15px 18px; 
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -89,7 +89,7 @@ body {
 
 .nav-item {
   border: none;
-  background: rgba(255, 255, 255, 0.06); /* Restored background for icons[cite: 3] */
+  background: rgba(255, 255, 255, 0.06); 
   color: #f9e8d4;
   padding: 12px;
   border-radius: 10px;
@@ -120,7 +120,7 @@ body {
 .app.collapsed .brand-text,
 .app.collapsed .nav-title,
 .app.collapsed .nav-label {
-  display: none !important; /* Fully removes text from view[cite: 3] */
+  display: none !important; 
 }
 
 .app.collapsed .sidebar {
@@ -138,7 +138,7 @@ body {
 /* 4. EXIT BUTTON */
 .exit {
   margin-top: auto;
-  align-self: flex-end; /* Right side of sidebar[cite: 3] */
+  align-self: flex-start;
   border: 1px solid rgba(255, 255, 255, 0.4);
   background: transparent;
   color: #f9e8d4;
@@ -205,7 +205,7 @@ body {
   margin-bottom: 4px;
 }
 
-/* 6. CATEGORY CARDS (Visual update) */
+/* 6. CATEGORY CARDS */
 .section-header {
   display: flex;
   align-items: center;
@@ -238,7 +238,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 20px;
-  background: #fbf4e9; /* Flat background like sample[cite: 1] */
+  background: #fbf4e9; 
   border: 1px solid #d6b291;
   border-radius: 20px;
   padding: 30px;
@@ -246,12 +246,12 @@ body {
 }
 
 .card-icon {
-  width: 110px; /* Bigger images[cite: 1] */
+  width: 110px;
   height: 110px;
-  background: none; /* No icon background[cite: 1] */
+  background: none; 
   display: grid;
   place-items: center;
-  font-size: 64px; /* Bigger emoji/icon[cite: 1] */
+  font-size: 64px; 
 }
 
 .card-meta .count {

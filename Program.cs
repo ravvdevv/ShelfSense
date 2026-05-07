@@ -16,7 +16,7 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseCors();
-app.UseDefaultFiles();
+app.MapGet("/", () => Results.Redirect("/html/index.html"));
 app.UseStaticFiles();
 app.MapControllers();
 
