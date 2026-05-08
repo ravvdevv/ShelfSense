@@ -7,13 +7,14 @@ const CATEGORY_LABEL = { Book: "Books", Magazine: "Magazines", Stationery: "Stat
 const LOW_STOCK_THRESHOLD = 5;
 
 // UI REFERENCES
-const tableBody    = document.querySelector(".table");
+const tableBody    = document.getElementById("inventoryBody");
 const dateLine     = document.getElementById("dateLine");
 const timeLine     = document.getElementById("timeLine");
 const modalOverlay = document.getElementById("modalOverlay");
 const modalTitle   = document.getElementById("modalTitle");
-const filterSelect = document.querySelector(".filter");
-const searchInput  = document.querySelector(".search input");
+const modalSubtitle = document.getElementById("modalSubtitle");
+const filterSelect = document.getElementById("filterSelect");
+const searchInput  = document.getElementById("searchInput");
 
 //SIDEBAR TOGGLES
 function toggleSidebar() {
@@ -41,8 +42,9 @@ function updateClock() {
 async function loadInventory() {
   try {
     const res = await fetch(API);
-    inventory  = await res.json();
+    inventory = await res.json();
     renderTable();
+    lucide.createIcons();
   } catch (err) {
     console.error("Failed to load inventory:", err);
   }
@@ -52,9 +54,7 @@ async function loadInventory() {
 function renderTable() {
   if (!tableBody) return;
 
-  const header = tableBody.querySelector(".table-head");
   tableBody.innerHTML = "";
-  if (header) tableBody.appendChild(header);
 
   const filterVal = filterSelect ? filterSelect.value : "All";
   const searchVal = searchInput  ? searchInput.value.toLowerCase().trim() : "";
@@ -70,24 +70,36 @@ function renderTable() {
   });
 
   if (filtered.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "table-row";
-    empty.innerHTML = `<div class="muted" style="grid-column:1/-1;text-align:center;padding:12px 0;">No products found.</div>`;
-    tableBody.appendChild(empty);
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="5" style="text-align:center; padding: 40px; color: var(--text-muted);">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
+            <i data-lucide="package-search" style="width:48px; height:48px; opacity:0.2;"></i>
+            <span>No products found matching your criteria.</span>
+          </div>
+        </td>
+      </tr>`;
+    lucide.createIcons();
   } else {
     filtered.forEach(item => {
       const globalIdx = inventory.indexOf(item);
       const isLow     = item.quantity <= LOW_STOCK_THRESHOLD;
-      const row       = document.createElement("div");
-      row.className   = "table-row";
+      const row       = document.createElement("tr");
       row.innerHTML   = `
-        <div>${item.name}</div>
-        <div>&#8369;${parseFloat(item.price).toFixed(2)}</div>
-        <div style="color:${isLow ? "#c0392b" : "inherit"};font-weight:${isLow ? "600" : "400"}">
-          ${item.quantity}${isLow ? " &#9888;" : ""}
-        </div>
-        <div><button class="pill view-btn" data-idx="${globalIdx}">View</button></div>
-        <div>${CATEGORY_LABEL[item.category] || item.category}</div>
+        <td style="font-weight:600;">${item.name}</td>
+        <td>&#8369;${parseFloat(item.price).toFixed(2)}</td>
+        <td>
+          <span class="badge ${isLow ? "badge-low" : "badge-ok"}">
+            ${isLow ? '<i data-lucide="alert-triangle" style="width:12px; height:12px; margin-right:4px;"></i>' : ""}
+            ${item.quantity} ${isLow ? "Low Stock" : "In Stock"}
+          </span>
+        </td>
+        <td style="color:var(--text-secondary);">${CATEGORY_LABEL[item.category] || item.category}</td>
+        <td class="actions-cell">
+          <button class="btn-ghost view-btn" data-idx="${globalIdx}" title="View Details">
+            <i data-lucide="eye"></i>
+          </button>
+        </td>
       `;
       tableBody.appendChild(row);
     });
@@ -95,6 +107,7 @@ function renderTable() {
     tableBody.querySelectorAll(".view-btn").forEach(btn => {
       btn.addEventListener("click", () => openViewModal(inventory[parseInt(btn.dataset.idx)]));
     });
+    lucide.createIcons();
   }
 
   updateCategoryCounts();
@@ -107,12 +120,12 @@ function updateCategoryCounts() {
     const label = CATEGORY_LABEL[item.category] || item.category;
     if (counts.hasOwnProperty(label)) counts[label] += item.quantity;
   });
-  document.querySelectorAll(".card").forEach(card => {
-    const labelEl = card.querySelector(".label");
-    if (!labelEl) return;
-    const label = labelEl.textContent.trim();
-    if (counts[label] !== undefined) {
-      card.querySelector(".count").textContent = counts[label];
+  
+  document.querySelectorAll(".stat-card").forEach(card => {
+    const category = card.dataset.category;
+    const valEl = card.querySelector(".stat-value");
+    if (valEl && counts[category] !== undefined) {
+      valEl.textContent = counts[category];
     }
   });
 }
@@ -120,8 +133,10 @@ function updateCategoryCounts() {
 
 //  MODAL UTILITIES
 function getFreshConfirmBtn() {
-  const old   = document.getElementById("modalConfirmBtn");
+  const old = document.getElementById("modalConfirmBtn");
   const fresh = old.cloneNode(true);
+  fresh.style.display = ""; // Reset display if hidden by showLoading
+  fresh.textContent = "Confirm"; // Default text
   old.parentNode.replaceChild(fresh, old);
   return fresh;
 }
@@ -135,6 +150,60 @@ function closeModal() {
   modalOverlay.style.display = "none";
 }
 
+function showLoading(message = "Processing...") {
+  modalTitle.textContent = "Please Wait";
+  modalSubtitle.textContent = "";
+  setModalBody(`
+    <div style="text-align:center; padding: 32px 0;">
+      <div class="spinner-container" style="margin-bottom: 20px;">
+        <i data-lucide="loader-2" class="animate-spin" style="width:40px; height:40px; color:var(--brand-primary);"></i>
+      </div>
+      <p style="color:var(--text-secondary); font-size:14px; font-weight:500;">${message}</p>
+    </div>
+  `);
+  modalOverlay.style.display = "flex";
+  lucide.createIcons();
+  
+  const btn = getFreshConfirmBtn();
+  btn.style.display = "none"; // Hide button during loading
+}
+
+/**
+ * Custom Alert/Confirmation System
+ * Replaces native alert() and confirm()
+ */
+function showAlert(title, message, type = "info", onConfirm = null) {
+  modalTitle.textContent = title;
+  modalSubtitle.textContent = "";
+  
+  let icon = "info";
+  let color = "var(--brand-primary)";
+  if (type === "success") { icon = "check-circle"; color = "var(--success)"; }
+  if (type === "error") { icon = "x-circle"; color = "var(--error)"; }
+  if (type === "warning") { icon = "alert-triangle"; color = "var(--warning)"; }
+
+  setModalBody(`
+    <div style="text-align:center; padding: 12px 0;">
+      <div style="width:64px; height:64px; background:var(--brand-light); color:${color}; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
+        <i data-lucide="${icon}" style="width:32px; height:32px;"></i>
+      </div>
+      <p style="font-size:15px; color:var(--text-secondary); line-height:1.6;">${message}</p>
+    </div>
+  `);
+
+  modalOverlay.style.display = "flex";
+  lucide.createIcons();
+
+  const btn = getFreshConfirmBtn();
+  btn.textContent = onConfirm ? "Confirm" : "Close";
+  btn.className = onConfirm ? "btn btn-primary" : "btn btn-secondary";
+  
+  btn.onclick = () => {
+    closeModal();
+    if (onConfirm) onConfirm();
+  };
+}
+
 //  SPECIFIC FIELDS
 function toggleSpecificFields() {
   const type      = document.getElementById("pType")?.value;
@@ -144,42 +213,45 @@ function toggleSpecificFields() {
 
   if (type === "Book") {
     container.innerHTML = `
-      <div class="input-row">
-        <div class="input-group">
+      <div class="field-divider"></div>
+      <div class="form-row">
+        <div class="form-group">
           <label>Author</label>
           <input type="text" id="pAuthor" placeholder="e.g. J.K. Rowling">
         </div>
-        <div class="input-group">
+        <div class="form-group">
           <label>ISBN</label>
           <input type="text" id="pISBN" placeholder="978-0-306-40615-7">
         </div>
       </div>
-      <div class="input-group">
+      <div class="form-group">
         <label>Genre</label>
         <input type="text" id="pGenre" placeholder="e.g. Fantasy">
       </div>`;
   } else if (type === "Magazine") {
     container.innerHTML = `
-      <div class="input-row">
-        <div class="input-group">
+      <div class="field-divider"></div>
+      <div class="form-row">
+        <div class="form-group">
           <label>Issue Number</label>
           <input type="number" id="pIssue" placeholder="42">
         </div>
-        <div class="input-group">
+        <div class="form-group">
           <label>Publication Date</label>
           <input type="date" id="pPubDate">
         </div>
       </div>`;
   } else if (type === "Stationery") {
     container.innerHTML = `
-      <div class="input-row">
-        <div class="input-group">
+      <div class="field-divider"></div>
+      <div class="form-row">
+        <div class="form-group">
           <label>Brand</label>
           <input type="text" id="pBrand" placeholder="e.g. Faber-Castell">
         </div>
-        <div class="input-group">
+        <div class="form-group">
           <label>Size</label>
-          <input type="text" id="pSize" placeholder="e.g. A4 or 0.7mm">
+          <input type="text" id="pSize" placeholder="e.g. A4">
         </div>
       </div>`;
   }
@@ -212,22 +284,23 @@ function readSpecificFields(type) {
 //  ADD PRODUCT
 function openAddModal() {
   modalTitle.textContent = "Add Product";
+  modalSubtitle.textContent = "Enter the details of the new inventory item.";
   setModalBody(`
-    <div class="input-group">
+    <div class="form-group">
       <label>Product Name</label>
       <input type="text" id="pName" placeholder="e.g. C# Programming">
     </div>
-    <div class="input-row">
-      <div class="input-group">
+    <div class="form-row">
+      <div class="form-group">
         <label>Price (PHP)</label>
         <input type="number" id="pPrice" step="0.01" placeholder="0.00" min="0">
       </div>
-      <div class="input-group">
+      <div class="form-group">
         <label>Quantity</label>
         <input type="number" id="pQty" placeholder="0" min="0">
       </div>
     </div>
-    <div class="input-group">
+    <div class="form-group">
       <label>Category Type</label>
       <select id="pType" onchange="toggleSpecificFields()">
         <option value="Book">Book</option>
@@ -235,125 +308,187 @@ function openAddModal() {
         <option value="Stationery">Stationery</option>
       </select>
     </div>
-    <div id="specificFields" class="specific-fields-area"></div>
+    <div id="specificFields"></div>
   `);
   toggleSpecificFields();
   modalOverlay.style.display = "flex";
 
   const btn = getFreshConfirmBtn();
+  btn.textContent = "Add Product";
   btn.onclick = async () => {
     const name  = document.getElementById("pName")?.value.trim();
     const price = parseFloat(document.getElementById("pPrice")?.value) || 0;
     const qty   = parseInt(document.getElementById("pQty")?.value)     || 0;
     const type  = document.getElementById("pType")?.value;
 
-    if (!name) { alert("Product Name is required!"); return; }
+    if (!name) { 
+      showAlert("Missing Information", "Please provide a product name before continuing.", "warning");
+      return; 
+    }
 
     const product = { name, price, quantity: qty, category: type, ...readSpecificFields(type) };
 
-    await fetch(API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(product)
-    });
+    showLoading("Adding product to inventory...");
 
-    await loadInventory();
-    closeModal();
+    try {
+      await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(product)
+      });
+
+      await loadInventory();
+      showAlert("Product Added", `${name} has been successfully added to your inventory.`, "success");
+    } catch (err) {
+      showAlert("Error", "Failed to add product. Please try again.", "error");
+    }
   };
 }
 
 //  UPDATE PRODUCT
 function openUpdateModal() {
   modalTitle.textContent = "Update Product";
+  modalSubtitle.textContent = "Modify an existing product's stock or pricing.";
+  
+  const options = inventory.map(item => `<option value="${item.id}">${item.name}</option>`).join("");
+
   setModalBody(`
-    <div class="input-group">
-      <label>Product to Update</label>
-      <input type="text" id="updateSearch" placeholder="Enter exact product name...">
+    <div class="form-group">
+      <label>Select Product</label>
+      <select id="updateId">
+        <option value="" disabled selected>Choose a product...</option>
+        ${options}
+      </select>
     </div>
-    <div class="input-group">
-      <label>New Quantity</label>
-      <input type="number" id="newQty" placeholder="0" min="0">
-    </div>
-    <div class="input-group">
-      <label>New Price (PHP) <span style="font-weight:400;color:#b9a08a">(optional)</span></label>
-      <input type="number" id="newPrice" step="0.01" placeholder="Leave blank to keep current" min="0">
+    <div class="form-row">
+      <div class="form-group">
+        <label>New Quantity</label>
+        <input type="number" id="newQty" placeholder="0" min="0">
+      </div>
+      <div class="form-group">
+        <label>New Price (PHP) <span style="font-weight:400;color:var(--text-muted)">(optional)</span></label>
+        <input type="number" id="newPrice" step="0.01" placeholder="Leave blank to keep current" min="0">
+      </div>
     </div>
   `);
   modalOverlay.style.display = "flex";
 
   const btn = getFreshConfirmBtn();
+  btn.textContent = "Update Product";
   btn.onclick = async () => {
-    const target   = document.getElementById("updateSearch")?.value.trim().toLowerCase();
+    const targetId = document.getElementById("updateId")?.value;
     const newQty   = document.getElementById("newQty")?.value;
     const newPrice = document.getElementById("newPrice")?.value;
 
-    const item = inventory.find(i => i.name.toLowerCase() === target);
-    if (!item) { alert("Product not found!"); return; }
+    const item = inventory.find(i => i.id == targetId);
+    if (!item) { 
+      showAlert("Selection Required", "Please select a product to update.", "warning");
+      return; 
+    }
 
-    await fetch(`${API}/${item.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        quantity: newQty   !== "" ? parseInt(newQty)        : item.quantity,
-        price:    newPrice !== "" ? parseFloat(newPrice)    : parseFloat(item.price)
-      })
-    });
+    showLoading("Updating product details...");
 
-    await loadInventory();
-    closeModal();
+    try {
+      await fetch(`${API}/${item.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          quantity: newQty   !== "" ? parseInt(newQty)        : item.quantity,
+          price:    newPrice !== "" ? parseFloat(newPrice)    : parseFloat(item.price)
+        })
+      });
+
+      await loadInventory();
+      showAlert("Update Successful", "The product details have been updated.", "success");
+    } catch (err) {
+      showAlert("Error", "Failed to update product.", "error");
+    }
   };
 }
 
 //  DELETE PRODUCT
 function openDeleteModal() {
   modalTitle.textContent = "Delete Product";
+  modalSubtitle.textContent = "Select an item to permanently remove it from inventory.";
+  
+  const options = inventory.map(item => `<option value="${item.id}">${item.name} (${CATEGORY_LABEL[item.category] || item.category})</option>`).join("");
+
   setModalBody(`
-    <div class="input-group">
-      <label>Product to Delete</label>
-      <input type="text" id="delName" placeholder="Enter exact product name...">
+    <div class="form-group">
+      <label>Select Product</label>
+      <select id="delId">
+        <option value="" disabled selected>Choose a product...</option>
+        ${options}
+      </select>
     </div>
-    <p style="color:#c0392b;font-size:0.85rem;margin:0;">This action cannot be undone.</p>
+    <div style="display:flex; align-items:center; gap:8px; color:var(--error); font-size:12px; font-weight:600; margin-top: 8px;">
+      <i data-lucide="alert-circle" style="width:14px; height:14px;"></i>
+      <span>This action is irreversible.</span>
+    </div>
   `);
   modalOverlay.style.display = "flex";
+  lucide.createIcons();
 
   const btn = getFreshConfirmBtn();
+  btn.textContent = "Delete Product";
   btn.onclick = async () => {
-    const target = document.getElementById("delName")?.value.trim().toLowerCase();
-    const item   = inventory.find(i => i.name.toLowerCase() === target);
+    const targetId = document.getElementById("delId")?.value;
+    const item = inventory.find(i => i.id == targetId);
 
-    if (!item) { alert("Product not found!"); return; }
+    if (!item) { 
+      showAlert("Selection Required", "Please select a product to delete.", "warning");
+      return; 
+    }
 
-    await fetch(`${API}/${item.id}`, { method: "DELETE" });
-    await loadInventory();
-    closeModal();
+    showAlert("Confirm Deletion", `Are you sure you want to remove ${item.name} from your inventory?`, "warning", async () => {
+      try {
+        showLoading(`Removing ${item.name}...`);
+        await fetch(`${API}/${item.id}`, { method: "DELETE" });
+        await loadInventory();
+        showAlert("Deleted", "Product has been removed.", "success");
+      } catch (err) {
+        showAlert("Error", "Failed to delete product.", "error");
+      }
+    });
   };
 }
 
 //CHECK ALERTS
 async function openAlertsModal() {
   modalTitle.textContent = "Stock Alerts";
+  modalSubtitle.textContent = "Items currently at or below threshold.";
 
   const res      = await fetch(`${API}/alerts`);
   const lowItems = await res.json();
 
   let bodyHtml = "";
   if (lowItems.length === 0) {
-    bodyHtml = `<p style="text-align:center;color:#6a4b37;padding:12px 0;">&#10003; All products are sufficiently stocked.</p>`;
+    bodyHtml = `
+      <div style="text-align:center; padding: 24px 0;">
+        <div style="width:64px; height:64px; background:var(--brand-light); color:var(--brand-primary); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+          <i data-lucide="check-circle" style="width:32px; height:32px;"></i>
+        </div>
+        <p style="font-weight:600;">Inventory Healthy</p>
+        <p style="font-size:13px; color:var(--text-secondary);">All products are sufficiently stocked.</p>
+      </div>`;
   } else {
     bodyHtml = `
-      <p style="color:#c0392b;font-size:0.85rem;margin:0 0 12px;">
-        ${lowItems.length} product(s) at or below ${LOW_STOCK_THRESHOLD} units:
-      </p>
-      ${lowItems.map(i => `
-        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e5ccb2;">
-          <span>${i.name}</span>
-          <span style="color:#c0392b;font-weight:600;">${i.quantity} left</span>
-        </div>`).join("")}
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        ${lowItems.map(i => `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-radius:var(--radius-sm); background:#fff5f5; border:1px solid #fed7d7;">
+            <div style="display:flex; flex-direction:column;">
+              <span style="font-weight:600; font-size:14px;">${i.name}</span>
+              <span style="font-size:12px; color:var(--text-secondary);">${CATEGORY_LABEL[i.category] || i.category}</span>
+            </div>
+            <span class="badge badge-low">${i.quantity} left</span>
+          </div>`).join("")}
+      </div>
     `;
   }
 
   setModalBody(bodyHtml);
   modalOverlay.style.display = "flex";
+  lucide.createIcons();
 
   const btn = getFreshConfirmBtn();
   btn.textContent = "Close";
@@ -363,37 +498,41 @@ async function openAlertsModal() {
 //  VIEW PRODUCT
 function openViewModal(item) {
   modalTitle.textContent = "Product Details";
+  modalSubtitle.textContent = "Complete specifications for this inventory item.";
 
   let specificHtml = "";
   if (item.category === "Book") {
     specificHtml = `
-      <div class="input-row">
-        <div class="input-group"><label>Author</label><input type="text" value="${item.author || "—"}" readonly></div>
-        <div class="input-group"><label>ISBN</label><input type="text" value="${item.isbn || "—"}" readonly></div>
+      <div class="field-divider"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Author</label><input type="text" value="${item.author || "—"}" readonly></div>
+        <div class="form-group"><label>ISBN</label><input type="text" value="${item.isbn || "—"}" readonly></div>
       </div>
-      <div class="input-group"><label>Genre</label><input type="text" value="${item.genre || "—"}" readonly></div>`;
+      <div class="form-group"><label>Genre</label><input type="text" value="${item.genre || "—"}" readonly></div>`;
   } else if (item.category === "Magazine") {
     specificHtml = `
-      <div class="input-row">
-        <div class="input-group"><label>Issue</label><input type="text" value="${item.issue || "—"}" readonly></div>
-        <div class="input-group"><label>Pub. Date</label><input type="text" value="${item.pubDate || "—"}" readonly></div>
+      <div class="field-divider"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Issue</label><input type="text" value="${item.issue || "—"}" readonly></div>
+        <div class="form-group"><label>Pub. Date</label><input type="text" value="${item.pubDate || "—"}" readonly></div>
       </div>`;
   } else if (item.category === "Stationery") {
     specificHtml = `
-      <div class="input-row">
-        <div class="input-group"><label>Brand</label><input type="text" value="${item.brand || "—"}" readonly></div>
-        <div class="input-group"><label>Size</label><input type="text" value="${item.size || "—"}" readonly></div>
+      <div class="field-divider"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Brand</label><input type="text" value="${item.brand || "—"}" readonly></div>
+        <div class="form-group"><label>Size</label><input type="text" value="${item.size || "—"}" readonly></div>
       </div>`;
   }
 
   setModalBody(`
-    <div class="input-group"><label>Product Name</label><input type="text" value="${item.name}" readonly></div>
-    <div class="input-row">
-      <div class="input-group"><label>Price (PHP)</label><input type="text" value="&#8369;${parseFloat(item.price).toFixed(2)}" readonly></div>
-      <div class="input-group"><label>Quantity</label><input type="text" value="${item.quantity}" readonly></div>
+    <div class="form-group"><label>Product Name</label><input type="text" value="${item.name}" readonly></div>
+    <div class="form-row">
+      <div class="form-group"><label>Price (PHP)</label><input type="text" value="&#8369;${parseFloat(item.price).toFixed(2)}" readonly></div>
+      <div class="form-group"><label>Quantity</label><input type="text" value="${item.quantity}" readonly></div>
     </div>
-    <div class="input-group"><label>Category</label><input type="text" value="${CATEGORY_LABEL[item.category] || item.category}" readonly></div>
-    <div class="specific-fields-area" style="margin-top:0;">${specificHtml}</div>
+    <div class="form-group"><label>Category</label><input type="text" value="${CATEGORY_LABEL[item.category] || item.category}" readonly></div>
+    ${specificHtml}
   `);
   modalOverlay.style.display = "flex";
 
@@ -419,8 +558,10 @@ modalOverlay?.addEventListener("click", e => {
   if (e.target === modalOverlay) closeModal();
 });
 
-document.querySelector(".exit")?.addEventListener("click", () => {
-  if (confirm("Exit ShelfSense?")) window.close();
+document.getElementById("exitBtn")?.addEventListener("click", () => {
+  showAlert("Exit System", "Are you sure you want to exit ShelfSense? Any unsaved form data will be lost.", "warning", () => {
+    window.close();
+  });
 });
 
 //  TIME

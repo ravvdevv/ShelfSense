@@ -6,126 +6,147 @@
     <title>ShelfSense Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Work+Sans:wght@400;600&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
   <body>
     <div class="app" id="app">
       <aside class="sidebar" id="sidebar">
-        <div class="brand" onclick="toggleSidebar()" style="cursor: pointer;">
-          <span class="toggle-arrow" id="toggleBtn">&#10148;</span>
+        <div class="brand" onclick="toggleSidebar()">
+          <div class="brand-logo">
+            <i data-lucide="layout-dashboard"></i>
+          </div>
           <span class="brand-text">ShelfSense</span>
         </div>
 
-        <div class="nav-title">Actions</div>
         <nav class="nav">
-          <button class="nav-item">
-            <span class="icon">+</span>
-            <span class="nav-label">Add Product</span>
-          </button>
-          <button class="nav-item">
-            <span class="icon">&#9998;</span>
-            <span class="nav-label">Update Product</span>
-          </button>
-          <button class="nav-item">
-            <span class="icon">&#128465;</span>
-            <span class="nav-label">Delete Product</span>
-          </button>
-          <button class="nav-item">
-            <span class="icon">&#128276;</span>
-            <span class="nav-label">Check Alerts</span>
-          </button>
+          <div class="nav-group">
+            <div class="nav-title">Management</div>
+            <button class="nav-item" onclick="openAddModal()">
+              <i data-lucide="plus-circle"></i>
+              <span class="nav-label">Add Product</span>
+            </button>
+            <button class="nav-item" onclick="openUpdateModal()">
+              <i data-lucide="edit-3"></i>
+              <span class="nav-label">Update Product</span>
+            </button>
+            <button class="nav-item" onclick="openDeleteModal()">
+              <i data-lucide="trash-2"></i>
+              <span class="nav-label">Delete Product</span>
+            </button>
+          </div>
+
+          <div class="nav-group">
+            <div class="nav-title">System</div>
+            <button class="nav-item" onclick="openAlertsModal()">
+              <i data-lucide="bell"></i>
+              <span class="nav-label">Check Alerts</span>
+            </button>
+          </div>
         </nav>
 
-        <button class="exit">
-          <span class="nav-label">Exit</span>
+        <button class="exit-btn" id="exitBtn">
+          <i data-lucide="log-out"></i>
+          <span class="nav-label">Exit System</span>
         </button>
       </aside>
 
       <main class="content">
         <header class="topbar">
-          <div class="search">
-            <span class="search-icon">&#128269;</span>
-            <input type="text" placeholder="Search" />
+          <div class="search-container">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" placeholder="Search inventory..." id="searchInput" />
           </div>
-          <div class="status">
-            <div class="time" id="timeLine">11:11pm</div>
-            <div class="date" id="dateLine">April 25, 2026 | Sat</div>
-            <div class="tagline">
-              System online. Let&#39;s get your inventory in order!
+          <div class="header-meta">
+            <div class="time-block">
+              <span class="time" id="timeLine">12:00 PM</span>
+              <span class="date" id="dateLine">May 09, 2026</span>
             </div>
           </div>
         </header>
 
         <section class="section-header">
-          <h2>Categories</h2>
-          <div class="rule"></div>
-        </section>
-
-        <section class="cards">
-          <article class="card">
-            <div class="card-icon"><span>&#128214;</span></div>
-            <div class="card-meta">
-              <div class="count">0</div>
-              <div class="label">Books</div>
-            </div>
-          </article>
-          <article class="card">
-            <div class="card-icon"><span>&#128218;</span></div>
-            <div class="card-meta">
-              <div class="count">0</div>
-              <div class="label">Magazines</div>
-            </div>
-          </article>
-          <article class="card">
-            <div class="card-icon"><span>&#128206;</span></div>
-            <div class="card-meta">
-              <div class="count">0</div>
-              <div class="label">Stationery</div>
-            </div>
-          </article>
-        </section>
-
-        <section class="table-section">
-          <div class="table-header">
-            <div class="rule"></div>
-            <select class="filter">
-              <option>All</option>
-              <option>Books</option>
-              <option>Magazines</option>
-              <option>Stationery</option>
+          <h2>Inventory</h2>
+          <div class="header-actions">
+            <select class="filter-select" id="filterSelect">
+              <option value="All">All Categories</option>
+              <option value="Books">Books</option>
+              <option value="Magazines">Magazines</option>
+              <option value="Stationery">Stationery</option>
             </select>
           </div>
+        </section>
 
-          <div class="table">
-            <div class="table-row table-head">
-              <div>Name</div>
-              <div>Price</div>
-              <div>Quantity</div>
-              <div>Details</div>
-              <div>Category</div>
+        <section class="stats-grid">
+          <article class="stat-card" data-category="Books">
+            <div class="stat-icon books">
+              <i data-lucide="book"></i>
             </div>
+            <div class="stat-info">
+              <span class="stat-label">Books</span>
+              <span class="stat-value">0</span>
+            </div>
+          </article>
+          <article class="stat-card" data-category="Magazines">
+            <div class="stat-icon magazines">
+              <i data-lucide="layers"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">Magazines</span>
+              <span class="stat-value">0</span>
+            </div>
+          </article>
+          <article class="stat-card" data-category="Stationery">
+            <div class="stat-icon stationery">
+              <i data-lucide="pen-tool"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">Stationery</span>
+              <span class="stat-value">0</span>
+            </div>
+          </article>
+        </section>
+
+        <section class="table-container">
+          <div class="table-wrapper">
+            <table class="inventory-table">
+              <thead>
+                <tr>
+                  <th>Product Name</th>
+                  <th>Price</th>
+                  <th>Quantity</th>
+                  <th>Category</th>
+                  <th class="actions-cell">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="inventoryBody">
+                <!-- Data injected here -->
+              </tbody>
+            </table>
           </div>
         </section>
       </main>
     </div>
 
-    <!-- Modalz -->
+    <!-- Modal System -->
     <div id="modalOverlay" class="modal-overlay">
-      <div class="modal-content">
+      <div class="modal-container">
         <div class="modal-header">
-          <h3 id="modalTitle">Add Product</h3>
-          <span class="close-x" onclick="closeModal()">&times;</span>
+          <div class="modal-title-group">
+            <h3 id="modalTitle">Modal Title</h3>
+            <p id="modalSubtitle">Subtext description</p>
+          </div>
+          <button class="close-btn" onclick="closeModal()">
+            <i data-lucide="x"></i>
+          </button>
         </div>
 
         <div class="modal-body"></div>
 
         <div class="modal-footer">
-          <button class="pill secondary" onclick="closeModal()">Cancel</button>
-          <button class="pill" id="modalConfirmBtn">Confirm</button>
+          <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-primary" id="modalConfirmBtn">Confirm Action</button>
         </div>
       </div>
     </div>
