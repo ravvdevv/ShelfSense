@@ -57,8 +57,13 @@
           <div class="search-container">
             <i data-lucide="search" class="search-icon"></i>
             <input type="text" placeholder="Search inventory..." id="searchInput" />
+            <kbd class="search-kbd">Ctrl+K</kbd>
           </div>
           <div class="header-meta">
+            <button class="icon-btn" id="alertsBtn" title="Stock Alerts">
+              <i data-lucide="bell"></i>
+              <span class="notification-badge" id="alertCount" style="display: none;">0</span>
+            </button>
             <div class="time-block">
               <span class="time" id="timeLine">12:00 PM</span>
               <span class="date" id="dateLine">May 09, 2026</span>

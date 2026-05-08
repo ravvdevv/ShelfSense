@@ -51,6 +51,21 @@ async function loadInventory() {
 }
 
 // TABLE
+function getProductAvatar(name, category) {
+  const initial = name.charAt(0).toUpperCase();
+  let bgColor = "var(--brand-light)";
+  let textColor = "var(--brand-primary)";
+  
+  if (category === "Book") { bgColor = "#fef3c7"; textColor = "#d97706"; }
+  if (category === "Magazine") { bgColor = "#e9d5ff"; textColor = "#7c3aed"; }
+  if (category === "Stationery") { bgColor = "#fed7aa"; textColor = "#ea580c"; }
+
+  return `
+    <div class="product-avatar" style="background:${bgColor}; color:${textColor};">
+      ${initial}
+    </div>`;
+}
+
 function renderTable() {
   if (!tableBody) return;
 
@@ -86,7 +101,12 @@ function renderTable() {
       const isLow     = item.quantity <= LOW_STOCK_THRESHOLD;
       const row       = document.createElement("tr");
       row.innerHTML   = `
-        <td style="font-weight:600;">${item.name}</td>
+        <td style="font-weight:600;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            ${getProductAvatar(item.name, item.category)}
+            <span>${item.name}</span>
+          </div>
+        </td>
         <td>&#8369;${parseFloat(item.price).toFixed(2)}</td>
         <td>
           <span class="badge ${isLow ? "badge-low" : "badge-ok"}">
@@ -111,6 +131,7 @@ function renderTable() {
   }
 
   updateCategoryCounts();
+  updateAlertCount();
 }
 
 //CATEGORY COUNT UPDATESS
@@ -130,6 +151,19 @@ function updateCategoryCounts() {
   });
 }
 
+function updateAlertCount() {
+  const lowItems = inventory.filter(i => i.quantity <= LOW_STOCK_THRESHOLD);
+  const countEl = document.getElementById("alertCount");
+  if (countEl) {
+    if (lowItems.length > 0) {
+      countEl.textContent = lowItems.length;
+      countEl.style.display = "flex";
+    } else {
+      countEl.style.display = "none";
+    }
+  }
+}
+
 
 //  MODAL UTILITIES
 function getFreshConfirmBtn() {
@@ -138,6 +172,11 @@ function getFreshConfirmBtn() {
   fresh.style.display = ""; // Reset display if hidden by showLoading
   fresh.textContent = "Confirm"; // Default text
   old.parentNode.replaceChild(fresh, old);
+
+  // Also ensure the standard Cancel button is visible
+  const cancelBtn = modalOverlay.querySelector(".btn-secondary:not(#modalConfirmBtn)");
+  if (cancelBtn) cancelBtn.style.display = "";
+
   return fresh;
 }
 
@@ -194,14 +233,23 @@ function showAlert(title, message, type = "info", onConfirm = null) {
   modalOverlay.style.display = "flex";
   lucide.createIcons();
 
-  const btn = getFreshConfirmBtn();
-  btn.textContent = onConfirm ? "Confirm" : "Close";
-  btn.className = onConfirm ? "btn btn-primary" : "btn btn-secondary";
+  // Handle the two buttons
+  const confirmBtn = getFreshConfirmBtn();
+  const cancelBtn  = modalOverlay.querySelector(".btn-secondary:not(#modalConfirmBtn)");
   
-  btn.onclick = () => {
-    closeModal();
-    if (onConfirm) onConfirm();
-  };
+  if (onConfirm) {
+    // Confirmation mode: show both
+    if (cancelBtn) cancelBtn.style.display = "inline-flex";
+    confirmBtn.textContent = "Confirm";
+    confirmBtn.className = "btn btn-primary";
+    confirmBtn.onclick = () => { closeModal(); onConfirm(); };
+  } else {
+    // Alert mode: hide cancel button, use confirmBtn as "Close"
+    if (cancelBtn) cancelBtn.style.display = "none";
+    confirmBtn.textContent = "Close";
+    confirmBtn.className = "btn btn-secondary";
+    confirmBtn.onclick = closeModal;
+  }
 }
 
 //  SPECIFIC FIELDS
@@ -553,6 +601,14 @@ document.querySelectorAll(".nav-item").forEach(item => {
 
 filterSelect?.addEventListener("change", renderTable);
 searchInput?.addEventListener("input", renderTable);
+document.getElementById("alertsBtn")?.addEventListener("click", openAlertsModal);
+
+document.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+    e.preventDefault();
+    searchInput?.focus();
+  }
+});
 
 modalOverlay?.addEventListener("click", e => {
   if (e.target === modalOverlay) closeModal();
